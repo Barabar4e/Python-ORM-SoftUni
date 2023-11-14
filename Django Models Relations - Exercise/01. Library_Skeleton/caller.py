@@ -8,8 +8,8 @@ from django.db.models import Sum, Count
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "orm_skeleton.settings")
 django.setup()
 
-
-from main_app.models import Author, Book, Song, Artist, Product, Review, DrivingLicense, Driver
+from main_app.models import Author, Book, Song, Artist, Product, Review, DrivingLicense, Driver, Registration, Owner, \
+	Car
 
 
 def show_all_authors_with_their_books():
@@ -62,14 +62,15 @@ def calculate_average_rating_for_product_by_name(product_name: str):
 
 	return average_rating
 
-	# product = Product.objects.annotate(
-	# 	ratings=Sum('review__rating'),
-	# 	num_reviews=Count('review')
-	# ).get(name=product_name)
-	#
-	# average_rating = product.ratings / product.num_reviews
-	#
-	# return average_rating
+
+# product = Product.objects.annotate(
+# 	ratings=Sum('review__rating'),
+# 	num_reviews=Count('review')
+# ).get(name=product_name)
+#
+# average_rating = product.ratings / product.num_reviews
+#
+# return average_rating
 
 
 def get_reviews_with_high_ratings(threshold: int):
@@ -98,3 +99,33 @@ def get_drivers_with_expired_licenses(due_date):
 	return driver_with_expired_licenses
 
 
+def register_car_by_owner(owner: Owner):
+	registration_without_car = Registration.objects.filter(car__isnull=True).first()
+	car_without_registration = Car.objects.filter(registration__isnull=True).first()
+
+	car_without_registration.owner = owner
+	car_without_registration.registration = registration_without_car
+
+	car_without_registration.save()
+
+	registration_without_car.registration_date = date.today()
+	registration_without_car.car_without_registration = car_without_registration
+
+	registration_without_car.save()
+
+	return f"Successfully registered {car_without_registration.model} to {owner.name} with registration number {registration_without_car.registration_number}."
+
+
+# Create instances of the Owner model
+owner1 = Owner.objects.create(name='Ivelin Milchev')
+owner2 = Owner.objects.create(name='Alice Smith')
+
+# Create instances of the Car model and associate them with owners
+car1 = Car.objects.create(model='Citroen C5', year=2004)
+car2 = Car.objects.create(model='Honda Civic', year=2021)
+
+# Create instances of the Registration model for the cars
+registration1 = Registration.objects.create(registration_number='TX0044XA')
+registration2 = Registration.objects.create(registration_number='XYZ789')
+
+print(register_car_by_owner(owner1))
