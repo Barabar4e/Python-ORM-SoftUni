@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 
 from main_app.mixins import RechargeEnergyMixin
@@ -193,3 +194,15 @@ class FlashHero(Hero):
 
 		super().save()
 		return f"{self.name} as Flash Hero runs at lightning speed, saving the day"
+
+
+class Document(models.Model):
+	title = models.CharField(
+		max_length=200,
+	)
+
+	content = models.TextField()
+
+	search_vector = SearchVectorField(
+		null=True,
+	)
